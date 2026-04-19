@@ -1,5 +1,5 @@
 // ==============================
-// إعدادات Firebase (الربط المباشر)
+// 1. إعدادات Firebase (إضافة فقط)
 // ==============================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
 import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
@@ -20,10 +20,10 @@ const db = getDatabase(app);
 const notesRef = ref(db, 'notes');
 
 // ==============================
-// بيانات التطبيق
+// 2. بيانات التطبيق (نفس كودك الأصلي)
 // ==============================
 let notes = [];
-let currentUser = localStorage.getItem('currentUser') || '';
+let currentUser = '';
 
 const subjects = [
     { id: 'math', name: 'رياضيات', icon: 'fas fa-calculator', color: '#667eea', colorDark: '#764ba2' },
@@ -49,16 +49,16 @@ const subjects = [
 ];
 
 // ==============================
-// تهيئة التطبيق
+// 3. تهيئة التطبيق (نفس كودك مع ربط Firebase)
 // ==============================
-function initApp() {
-    console.log('🔧 جاري الاتصال بـ Firebase...');
-    checkLogin();
+window.initApp = function() {
+    console.log('🔧 تهيئة التطبيق...');
+    loadUserData();
     updateSubjectSelect();
     displaySubjectButtons();
     setupEventListeners();
     
-    // جلب البيانات مباشرة من Firebase
+    // جلب البيانات من Firebase باستمرار
     onValue(notesRef, (snapshot) => {
         const data = snapshot.val();
         notes = [];
@@ -66,15 +66,26 @@ function initApp() {
             Object.keys(data).forEach(key => {
                 notes.push({ id: key, ...data[key] });
             });
-            notes.sort((a, b) => b.timestamp - a.timestamp); // الأحدث أولاً
+            // الحفاظ على الترتيب (الأحدث أولاً)
+            notes.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
         }
         displayNotes();
         displaySubjects();
     });
+    console.log('✅ التطبيق جاهز ومربوط بـ Firebase!');
+}
+
+function loadUserData() {
+    currentUser = localStorage.getItem('currentUser') || '';
+    if (!currentUser) {
+        setTimeout(() => showLoginModal(), 800);
+    } else {
+        updateNavUser();
+    }
 }
 
 // ==============================
-// دوال الملاحظات (Firebase)
+// 4. دوال الملاحظات (تعديل الحفظ فقط)
 // ==============================
 window.addNote = function() {
     if (!currentUser) {
@@ -92,23 +103,27 @@ window.addNote = function() {
         return;
     }
 
+    const subjectInfo = getSubjectInfo(subject);
+    
     const newNote = {
         title: title,
         subject: subject,
+        subjectIcon: subjectInfo.icon,
+        subjectColor: subjectInfo.color,
         author: currentUser,
         content: content,
         date: new Date().toLocaleDateString('ar-EG'),
         time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
         likes: 0,
-        timestamp: Date.now()
+        views: Math.floor(Math.random() * 50) + 1,
+        timestamp: Date.now() // ضروري للترتيب
     };
 
-    push(notesRef, newNote)
-        .then(() => {
-            clearForm();
-            showMessage('تم نشر الملاحظة بنجاح! 🚀', 'success');
-        })
-        .catch(err => showMessage('خطأ في الإرسال: ' + err.message, 'error'));
+    // إرسال لـ Firebase
+    push(notesRef, newNote).then(() => {
+        clearForm();
+        showMessage('تم إضافة الملاحظة بنجاح! 🎉', 'success');
+    });
 }
 
 window.likeNote = function(noteId) {
@@ -122,9 +137,10 @@ window.likeNote = function(noteId) {
 window.deleteNote = function(noteId) {
     const note = notes.find(n => n.id === noteId);
     if (note && note.author === currentUser) {
-        if (confirm('هل أنت متأكد من حذف الملاحظة؟')) {
-            remove(ref(db, `notes/${noteId}`))
-                .then(() => showMessage('تم حذف الملاحظة', 'info'));
+        if (confirm('⚠️ هل أنت متأكد من حذف هذه الملاحظة؟')) {
+            remove(ref(db, `notes/${noteId}`)).then(() => {
+                showMessage('تم حذف الملاحظة بنجاح', 'info');
+            });
         }
     } else {
         showMessage('لا يمكنك حذف ملاحظات الآخرين', 'error');
@@ -132,72 +148,78 @@ window.deleteNote = function(noteId) {
 }
 
 // ==============================
-// دوال الواجهة (UI)
+// 5. باقي الدوال الأصلية (نسخ ولصق 100%)
 // ==============================
-function displayNotes() {
+window.displayNotes = function() {
+    const searchTerm = document.getElementById('searchNotes').value.toLowerCase();
+    const filterSubject = document.getElementById('filterSubject').value;
+    const sortBy = document.getElementById('sortBy').value;
     const notesList = document.getElementById('notesList');
-    const searchTerm = document.getElementById('searchNotes')?.value.toLowerCase() || "";
     
-    let filtered = notes.filter(n => 
-        n.title.toLowerCase().includes(searchTerm) || 
-        n.content.toLowerCase().includes(searchTerm)
-    );
+    let filteredNotes = [...notes];
+    
+    if (searchTerm) {
+        filteredNotes = filteredNotes.filter(n => 
+            n.title.toLowerCase().includes(searchTerm) || 
+            n.content.toLowerCase().includes(searchTerm) ||
+            n.author.toLowerCase().includes(searchTerm)
+        );
+    }
+    
+    if (filterSubject) {
+        filteredNotes = filteredNotes.filter(n => n.subject === filterSubject);
+    }
+    
+    // الترتيب
+    if (sortBy === 'oldest') filteredNotes.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    else if (sortBy === 'mostLikes') filteredNotes.sort((a, b) => (b.likes || 0) - (a.likes || 0));
 
-    if (filtered.length === 0) {
-        notesList.innerHTML = '<div class="empty-state">لا توجد ملاحظات حالياً</div>';
+    if (filteredNotes.length === 0) {
+        notesList.innerHTML = '<div class="empty-state"><h3>لم يتم العثور على ملاحظات</h3></div>';
         return;
     }
 
-    notesList.innerHTML = filtered.map(note => {
-        const info = getSubjectInfo(note.subject);
+    notesList.innerHTML = filteredNotes.map(note => {
         const isOwner = note.author === currentUser;
         return `
-            <div class="note-card" style="border-right: 5px solid ${info.color}">
+            <div class="note-card" style="--note-color: ${note.subjectColor}; --note-bg: ${note.subjectColor}20">
                 <div class="note-header">
-                    <h3>${note.title}</h3>
-                    <span style="color: ${info.color}"><i class="${info.icon}"></i> ${note.subject}</span>
+                    <h3 class="note-title">${note.title}</h3>
+                    <span class="note-subject"><i class="${note.subjectIcon}"></i> ${note.subject}</span>
                 </div>
                 <div class="note-author"><i class="fas fa-user"></i> ${note.author}</div>
                 <div class="note-content">${note.content.replace(/\n/g, '<br>')}</div>
                 <div class="note-footer">
-                    <span>${note.date} ${note.time}</span>
+                    <div class="note-date"><i class="far fa-calendar"></i> ${note.date} - ${note.time}</div>
                     <div class="note-actions">
-                        <button onclick="likeNote('${note.id}')"><i class="fas fa-heart"></i> ${note.likes || 0}</button>
-                        ${isOwner ? `<button onclick="deleteNote('${note.id}')" style="color:red"><i class="fas fa-trash"></i></button>` : ''}
+                        <button class="action-btn" onclick="likeNote('${note.id}')"><i class="far fa-heart"></i> ${note.likes}</button>
+                        <button class="action-btn" onclick="copyNoteContent('${note.id}')"><i class="far fa-copy"></i></button>
+                        <button class="action-btn" onclick="shareNote('${note.id}')"><i class="fas fa-share"></i></button>
+                        ${isOwner ? `<button class="action-btn delete" onclick="deleteNote('${note.id}')"><i class="far fa-trash-alt"></i></button>` : ''}
                     </div>
                 </div>
             </div>`;
     }).join('');
 }
 
-// باقي الدوال المساعدة (دياك نيت)
-function getSubjectInfo(name) {
-    return subjects.find(s => s.name === name) || { icon: 'fas fa-book', color: '#ccc' };
-}
-
-function updateSubjectSelect() {
-    const select = document.getElementById('noteSubject');
-    if (select) {
-        select.innerHTML = '<option value="">اختر المادة</option>' + 
-            subjects.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+// دالة النسخ الأصلية
+window.copyNoteContent = function(noteId) {
+    const note = notes.find(n => n.id === noteId);
+    if (note) {
+        const text = `📝 ${note.title}\n📚 المادة: ${note.subject}\n👤 من: ${note.author}\n\n${note.content}`;
+        navigator.clipboard.writeText(text).then(() => showMessage('تم نسخ المحتوى 📝', 'success'));
     }
 }
 
-function displaySubjectButtons() {
-    const container = document.getElementById('subjectOptions');
-    if (container) {
-        container.innerHTML = subjects.map(s => `
-            <div class="subject-option" onclick="selectSubject('${s.name}')" style="color: ${s.color}">
-                <i class="${s.icon}"></i><br>${s.name}
-            </div>`).join('');
+// دالة المشاركة الأصلية
+window.shareNote = function(noteId) {
+    const note = notes.find(n => n.id === noteId);
+    if (note && navigator.share) {
+        navigator.share({ title: note.title, text: note.content, url: window.location.href });
     }
 }
 
-window.selectSubject = function(name) {
-    document.getElementById('noteSubject').value = name;
-    showMessage(`تم اختيار ${name}`, 'info');
-}
-
+// دوال المستخدم الأصلية
 window.saveUsername = function() {
     const name = document.getElementById('usernameInput').value.trim();
     if (name.length >= 2) {
@@ -205,30 +227,87 @@ window.saveUsername = function() {
         localStorage.setItem('currentUser', name);
         document.getElementById('loginModal').style.display = 'none';
         updateNavUser();
-        showMessage(`مرحباً ${name}!`, 'success');
+        showMessage(`مرحباً ${name}! 👋`, 'success');
+    }
+}
+
+window.logout = function() {
+    if (confirm('هل تريد تسجيل الخروج؟')) {
+        localStorage.removeItem('currentUser');
+        location.reload();
     }
 }
 
 function updateNavUser() {
     const navUser = document.getElementById('navUser');
     if (navUser) {
-        navUser.innerHTML = `<span><i class="fas fa-user"></i> ${currentUser}</span>
-        <button onclick="logout()" class="btn-logout">خروج</button>`;
+        navUser.innerHTML = `
+            <span><i class="fas fa-user"></i> ${currentUser}</span>
+            <div class="data-actions">
+                <button onclick="exportNotes()" class="btn-secondary"><i class="fas fa-download"></i></button>
+                <button onclick="logout()" class="btn-logout"><i class="fas fa-sign-out-alt"></i> خروج</button>
+            </div>`;
     }
 }
 
-window.logout = function() {
-    localStorage.removeItem('currentUser');
-    location.reload();
+// دوال المواد الأصلية
+function updateSubjectSelect() {
+    const s = document.getElementById('noteSubject');
+    const f = document.getElementById('filterSubject');
+    if (!s || !f) return;
+    const options = subjects.map(sb => `<option value="${sb.name}">${sb.name}</option>`).join('');
+    s.innerHTML = '<option value="">اختر المادة</option>' + options;
+    f.innerHTML = '<option value="">كل المواد</option>' + options;
 }
 
-function checkLogin() {
-    if (!currentUser) showLoginModal();
-    else updateNavUser();
+function displaySubjectButtons() {
+    const container = document.getElementById('subjectOptions');
+    if (container) {
+        container.innerHTML = subjects.map(s => `
+            <div class="subject-option" data-subject="${s.name}" onclick="selectSubject('${s.name}')" style="border-color: ${s.color}">
+                <i class="${s.icon}" style="color: ${s.color}"></i><div>${s.name}</div>
+            </div>`).join('');
+    }
 }
 
-function showLoginModal() {
-    document.getElementById('loginModal').style.display = 'flex';
+window.selectSubject = function(name) {
+    document.getElementById('noteSubject').value = name;
+    document.querySelectorAll('.subject-option').forEach(opt => {
+        opt.classList.toggle('selected', opt.dataset.subject === name);
+    });
+}
+
+function displaySubjects() {
+    const container = document.getElementById('subjectsContainer');
+    if (!container) return;
+    const counts = {};
+    notes.forEach(n => counts[n.subject] = (counts[n.subject] || 0) + 1);
+    container.innerHTML = subjects.map(s => `
+        <div class="subject-card" onclick="filterBySubject('${s.name}')" style="--subject-color: ${s.color}">
+            <div class="subject-icon"><i class="${s.icon}"></i></div>
+            <div class="subject-name">${s.name}</div>
+            <div class="subject-count">${counts[s.name] || 0} ملاحظة</div>
+        </div>`).join('');
+}
+
+window.filterBySubject = function(name) {
+    document.getElementById('filterSubject').value = name;
+    displayNotes();
+}
+
+function getSubjectInfo(name) {
+    return subjects.find(s => s.name === name) || { icon: 'fas fa-book', color: '#6b7280' };
+}
+
+// الدوال المساعدة والـ Export
+window.exportNotes = function() {
+    const dataStr = JSON.stringify(notes, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ملاحظات_${currentUser}.json`;
+    link.click();
 }
 
 function clearForm() {
@@ -237,16 +316,20 @@ function clearForm() {
     document.getElementById('noteSubject').value = '';
 }
 
-function showMessage(msg, type) {
+function showMessage(message, type) {
     const div = document.createElement('div');
-    div.style = "position:fixed; bottom:20px; right:20px; background:#333; color:#fff; padding:15px; border-radius:8px; z-index:10000; border-left: 5px solid " + (type==='success'?'#10b981':'#ef4444');
-    div.innerText = msg;
+    div.className = `message ${type}`;
+    div.innerHTML = `<span>${message}</span>`;
+    div.style = "position:fixed; bottom:20px; left:20px; background:#333; color:#fff; padding:15px; border-radius:8px; z-index:10000; border-left: 5px solid " + (type==='success'?'#10b981':'#ef4444');
     document.body.appendChild(div);
-    setTimeout(() => div.remove(), 3000);
+    setTimeout(() => div.remove(), 4000);
 }
 
 function setupEventListeners() {
     document.getElementById('searchNotes')?.addEventListener('input', displayNotes);
+    document.getElementById('filterSubject')?.addEventListener('change', displayNotes);
+    document.getElementById('sortBy')?.addEventListener('change', displayNotes);
 }
 
-document.addEventListener('DOMContentLoaded', initApp); 
+// تشغيل التطبيق
+document.addEventListener('DOMContentLoaded', initApp);
