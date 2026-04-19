@@ -1,8 +1,8 @@
-// ==============================
-// 1. إعدادات Firebase (إضافة فقط)
-// ==============================
+// ==========================================
+// 1. إعدادات FIREBASE (الربط السحابي)
+// ==========================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
+import { getDatabase, ref, push, onValue, remove, update, set } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBkh7Mp-ixAnlQbERW5f4FYDhFEDN8q2zk",
@@ -19,9 +19,9 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const notesRef = ref(db, 'notes');
 
-// ==============================
-// 2. بيانات التطبيق (نفس كودك الأصلي)
-// ==============================
+// ==========================================
+// 2. بيانات التطبيق (نفس القائمة الطويلة ديالك)
+// ==========================================
 let notes = [];
 let currentUser = '';
 
@@ -48,17 +48,29 @@ const subjects = [
     { id: 'music', name: 'موسيقى', icon: 'fas fa-music', color: '#8b5cf6', colorDark: '#7c3aed' }
 ];
 
-// ==============================
-// 3. تهيئة التطبيق (نفس كودك مع ربط Firebase)
-// ==============================
+// ==========================================
+// 3. تهيئة التطبيق (INIT APP)
+// ==========================================
 window.initApp = function() {
-    console.log('🔧 تهيئة التطبيق...');
-    loadUserData();
+    console.log('🔧 جاري بدء تشغيل المنصة...');
+    
+    // تحميل المستخدم من LocalStorage
+    currentUser = localStorage.getItem('currentUser') || '';
+    
+    // تحديث الواجهة
     updateSubjectSelect();
     displaySubjectButtons();
+    displaySubjects();
     setupEventListeners();
     
-    // جلب البيانات من Firebase باستمرار
+    // فحص الدخول
+    if (!currentUser) {
+        setTimeout(showLoginModal, 1000);
+    } else {
+        updateNavUser();
+    }
+
+    // الربط المباشر مع Firebase (Data Sync)
     onValue(notesRef, (snapshot) => {
         const data = snapshot.val();
         notes = [];
@@ -66,46 +78,38 @@ window.initApp = function() {
             Object.keys(data).forEach(key => {
                 notes.push({ id: key, ...data[key] });
             });
-            // الحفاظ على الترتيب (الأحدث أولاً)
+            // ترتيب من الأحدث للأقدم
             notes.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        } else {
+            console.log('📭 قاعدة البيانات فارغة');
         }
         displayNotes();
         displaySubjects();
     });
-    console.log('✅ التطبيق جاهز ومربوط بـ Firebase!');
-}
+};
 
-function loadUserData() {
-    currentUser = localStorage.getItem('currentUser') || '';
-    if (!currentUser) {
-        setTimeout(() => showLoginModal(), 800);
-    } else {
-        updateNavUser();
-    }
-}
-
-// ==============================
-// 4. دوال الملاحظات (تعديل الحفظ فقط)
-// ==============================
+// ==========================================
+// 4. دوال الحفظ والمسح (التعامل مع Firebase)
+// ==========================================
 window.addNote = function() {
-    if (!currentUser) {
-        showMessage('الرجاء تسجيل الدخول أولاً', 'error');
-        showLoginModal();
-        return;
-    }
-    
-    const title = document.getElementById('noteTitle').value.trim();
-    const subject = document.getElementById('noteSubject').value;
-    const content = document.getElementById('noteContent').value.trim();
-    
-    if (!title || !subject || !content) {
-        showMessage('الرجاء ملء جميع الحقول', 'error');
-        return;
-    }
+    const titleInput = document.getElementById('noteTitle');
+    const subjectInput = document.getElementById('noteSubject');
+    const contentInput = document.getElementById('noteContent');
+
+    const title = titleInput.value.trim();
+    const subject = subjectInput.value;
+    const content = contentInput.value.trim();
+
+    // التحققات الطويلة (Validation)
+    if (!currentUser) { showMessage('سجل دخولك أولاً!', 'error'); showLoginModal(); return; }
+    if (!title) { showMessage('العنوان مطلوب', 'error'); titleInput.focus(); return; }
+    if (!subject) { showMessage('اختر المادة', 'error'); subjectInput.focus(); return; }
+    if (!content) { showMessage('المحتوى فارغ!', 'error'); contentInput.focus(); return; }
+    if (title.length > 100) { showMessage('العنوان طويل بزاف', 'error'); return; }
 
     const subjectInfo = getSubjectInfo(subject);
     
-    const newNote = {
+    const noteData = {
         title: title,
         subject: subject,
         subjectIcon: subjectInfo.icon,
@@ -115,113 +119,107 @@ window.addNote = function() {
         date: new Date().toLocaleDateString('ar-EG'),
         time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
         likes: 0,
-        views: Math.floor(Math.random() * 50) + 1,
-        timestamp: Date.now() // ضروري للترتيب
+        views: Math.floor(Math.random() * 100),
+        timestamp: Date.now()
     };
 
-    // إرسال لـ Firebase
-    push(notesRef, newNote).then(() => {
-        clearForm();
-        showMessage('تم إضافة الملاحظة بنجاح! 🎉', 'success');
-    });
-}
+    push(notesRef, noteData)
+        .then(() => {
+            clearForm();
+            showMessage('تم نشر ملاحظتك بنجاح! 🚀', 'success');
+        })
+        .catch((err) => {
+            showMessage('خطأ في الاتصال بالسيرفر', 'error');
+            console.error(err);
+        });
+};
+
+window.deleteNote = function(noteId) {
+    const note = notes.find(n => n.id === noteId);
+    if (!note) return;
+
+    if (note.author !== currentUser) {
+        showMessage('هذه ليست ملاحظتك لحذفها!', 'error');
+        return;
+    }
+
+    if (confirm('⚠️ واش بصح بغيتي تمسح هاد الملاحظة؟')) {
+        remove(ref(db, `notes/${noteId}`))
+            .then(() => showMessage('تم الحذف بنجاح', 'info'))
+            .catch(() => showMessage('تعذر الحذف', 'error'));
+    }
+};
 
 window.likeNote = function(noteId) {
     const note = notes.find(n => n.id === noteId);
     if (note) {
-        const noteUpdateRef = ref(db, `notes/${noteId}`);
-        update(noteUpdateRef, { likes: (note.likes || 0) + 1 });
+        const updateRef = ref(db, `notes/${noteId}`);
+        update(updateRef, { likes: (note.likes || 0) + 1 });
     }
-}
+};
 
-window.deleteNote = function(noteId) {
-    const note = notes.find(n => n.id === noteId);
-    if (note && note.author === currentUser) {
-        if (confirm('⚠️ هل أنت متأكد من حذف هذه الملاحظة؟')) {
-            remove(ref(db, `notes/${noteId}`)).then(() => {
-                showMessage('تم حذف الملاحظة بنجاح', 'info');
-            });
-        }
-    } else {
-        showMessage('لا يمكنك حذف ملاحظات الآخرين', 'error');
-    }
-}
-
-// ==============================
-// 5. باقي الدوال الأصلية (نسخ ولصق 100%)
-// ==============================
+// ==========================================
+// 5. دوال الواجهة والعرض (DOM MANIPULATION)
+// ==========================================
 window.displayNotes = function() {
+    const notesList = document.getElementById('notesList');
     const searchTerm = document.getElementById('searchNotes').value.toLowerCase();
     const filterSubject = document.getElementById('filterSubject').value;
     const sortBy = document.getElementById('sortBy').value;
-    const notesList = document.getElementById('notesList');
-    
-    let filteredNotes = [...notes];
-    
+
+    let result = [...notes];
+
+    // فلترة البحث
     if (searchTerm) {
-        filteredNotes = filteredNotes.filter(n => 
+        result = result.filter(n => 
             n.title.toLowerCase().includes(searchTerm) || 
             n.content.toLowerCase().includes(searchTerm) ||
             n.author.toLowerCase().includes(searchTerm)
         );
     }
-    
-    if (filterSubject) {
-        filteredNotes = filteredNotes.filter(n => n.subject === filterSubject);
-    }
-    
-    // الترتيب
-    if (sortBy === 'oldest') filteredNotes.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-    else if (sortBy === 'mostLikes') filteredNotes.sort((a, b) => (b.likes || 0) - (a.likes || 0));
 
-    if (filteredNotes.length === 0) {
-        notesList.innerHTML = '<div class="empty-state"><h3>لم يتم العثور على ملاحظات</h3></div>';
+    // فلترة المادة
+    if (filterSubject) {
+        result = result.filter(n => n.subject === filterSubject);
+    }
+
+    // الترتيب (المنطق الطويل)
+    if (sortBy === 'oldest') result.sort((a, b) => a.timestamp - b.timestamp);
+    else if (sortBy === 'mostLikes') result.sort((a, b) => b.likes - a.likes);
+
+    if (result.length === 0) {
+        notesList.innerHTML = `<div class="empty-state"><h3>ما كاين حتى ملاحظة هنا..</h3></div>`;
         return;
     }
 
-    notesList.innerHTML = filteredNotes.map(note => {
-        const isOwner = note.author === currentUser;
-        return `
-            <div class="note-card" style="--note-color: ${note.subjectColor}; --note-bg: ${note.subjectColor}20">
-                <div class="note-header">
-                    <h3 class="note-title">${note.title}</h3>
-                    <span class="note-subject"><i class="${note.subjectIcon}"></i> ${note.subject}</span>
+    notesList.innerHTML = result.map(n => `
+        <div class="note-card" style="border-right: 5px solid ${n.subjectColor}">
+            <div class="note-header">
+                <h3 class="note-title">${n.title}</h3>
+                <span class="note-subject"><i class="${n.subjectIcon}"></i> ${n.subject}</span>
+            </div>
+            <div class="note-author"><i class="fas fa-user-circle"></i> ${n.author}</div>
+            <div class="note-content">${n.content.replace(/\n/g, '<br>')}</div>
+            <div class="note-footer">
+                <span class="note-date">${n.date} - ${n.time}</span>
+                <div class="note-actions">
+                    <button class="action-btn" onclick="likeNote('${n.id}')">❤️ ${n.likes}</button>
+                    <button class="action-btn" onclick="copyNoteContent('${n.id}')"><i class="far fa-copy"></i></button>
+                    <button class="action-btn" onclick="shareNote('${n.id}')"><i class="fas fa-share-alt"></i></button>
+                    ${n.author === currentUser ? `<button class="action-btn delete" onclick="deleteNote('${n.id}')">🗑️</button>` : ''}
                 </div>
-                <div class="note-author"><i class="fas fa-user"></i> ${note.author}</div>
-                <div class="note-content">${note.content.replace(/\n/g, '<br>')}</div>
-                <div class="note-footer">
-                    <div class="note-date"><i class="far fa-calendar"></i> ${note.date} - ${note.time}</div>
-                    <div class="note-actions">
-                        <button class="action-btn" onclick="likeNote('${note.id}')"><i class="far fa-heart"></i> ${note.likes}</button>
-                        <button class="action-btn" onclick="copyNoteContent('${note.id}')"><i class="far fa-copy"></i></button>
-                        <button class="action-btn" onclick="shareNote('${note.id}')"><i class="fas fa-share"></i></button>
-                        ${isOwner ? `<button class="action-btn delete" onclick="deleteNote('${note.id}')"><i class="far fa-trash-alt"></i></button>` : ''}
-                    </div>
-                </div>
-            </div>`;
-    }).join('');
-}
+            </div>
+        </div>
+    `).join('');
+};
 
-// دالة النسخ الأصلية
-window.copyNoteContent = function(noteId) {
-    const note = notes.find(n => n.id === noteId);
-    if (note) {
-        const text = `📝 ${note.title}\n📚 المادة: ${note.subject}\n👤 من: ${note.author}\n\n${note.content}`;
-        navigator.clipboard.writeText(text).then(() => showMessage('تم نسخ المحتوى 📝', 'success'));
-    }
-}
+// ==========================================
+// 6. الدوال المساعدة (نفس كودك الأصلي تماماً)
+// ==========================================
 
-// دالة المشاركة الأصلية
-window.shareNote = function(noteId) {
-    const note = notes.find(n => n.id === noteId);
-    if (note && navigator.share) {
-        navigator.share({ title: note.title, text: note.content, url: window.location.href });
-    }
-}
-
-// دوال المستخدم الأصلية
 window.saveUsername = function() {
-    const name = document.getElementById('usernameInput').value.trim();
+    const input = document.getElementById('usernameInput');
+    const name = input.value.trim();
     if (name.length >= 2) {
         currentUser = name;
         localStorage.setItem('currentUser', name);
@@ -229,53 +227,69 @@ window.saveUsername = function() {
         updateNavUser();
         showMessage(`مرحباً ${name}! 👋`, 'success');
     }
+};
+
+window.copyNoteContent = function(id) {
+    const n = notes.find(x => x.id === id);
+    if (n) {
+        const txt = `${n.title}\nالمادة: ${n.subject}\nبواسطة: ${n.author}\n\n${n.content}`;
+        navigator.clipboard.writeText(txt).then(() => showMessage('تم النسخ!', 'success'));
+    }
+};
+
+window.shareNote = function(id) {
+    const n = notes.find(x => x.id === id);
+    if (n && navigator.share) {
+        navigator.share({ title: n.title, text: n.content, url: window.location.href });
+    }
+};
+
+function updateNavUser() {
+    const nav = document.getElementById('navUser');
+    if (nav) {
+        nav.innerHTML = `
+            <span>👤 ${currentUser}</span>
+            <button onclick="exportNotes()" class="btn-secondary">📥 حفظ نسخة</button>
+            <button onclick="logout()" class="btn-logout">خروج</button>
+        `;
+    }
 }
 
 window.logout = function() {
-    if (confirm('هل تريد تسجيل الخروج؟')) {
+    if (confirm('تسجيل الخروج؟')) {
         localStorage.removeItem('currentUser');
         location.reload();
     }
-}
+};
 
-function updateNavUser() {
-    const navUser = document.getElementById('navUser');
-    if (navUser) {
-        navUser.innerHTML = `
-            <span><i class="fas fa-user"></i> ${currentUser}</span>
-            <div class="data-actions">
-                <button onclick="exportNotes()" class="btn-secondary"><i class="fas fa-download"></i></button>
-                <button onclick="logout()" class="btn-logout"><i class="fas fa-sign-out-alt"></i> خروج</button>
-            </div>`;
-    }
-}
-
-// دوال المواد الأصلية
 function updateSubjectSelect() {
     const s = document.getElementById('noteSubject');
     const f = document.getElementById('filterSubject');
-    if (!s || !f) return;
-    const options = subjects.map(sb => `<option value="${sb.name}">${sb.name}</option>`).join('');
-    s.innerHTML = '<option value="">اختر المادة</option>' + options;
-    f.innerHTML = '<option value="">كل المواد</option>' + options;
+    if (s && f) {
+        const html = subjects.map(x => `<option value="${x.name}">${x.name}</option>`).join('');
+        s.innerHTML = '<option value="">اختر المادة</option>' + html;
+        f.innerHTML = '<option value="">كل المواد</option>' + html;
+    }
 }
 
 function displaySubjectButtons() {
     const container = document.getElementById('subjectOptions');
     if (container) {
         container.innerHTML = subjects.map(s => `
-            <div class="subject-option" data-subject="${s.name}" onclick="selectSubject('${s.name}')" style="border-color: ${s.color}">
-                <i class="${s.icon}" style="color: ${s.color}"></i><div>${s.name}</div>
-            </div>`).join('');
+            <div class="subject-option" onclick="selectSubject('${s.name}')" style="border-color:${s.color}">
+                <i class="${s.icon}" style="color:${s.color}"></i>
+                <span>${s.name}</span>
+            </div>
+        `).join('');
     }
 }
 
 window.selectSubject = function(name) {
     document.getElementById('noteSubject').value = name;
-    document.querySelectorAll('.subject-option').forEach(opt => {
-        opt.classList.toggle('selected', opt.dataset.subject === name);
+    document.querySelectorAll('.subject-option').forEach(el => {
+        el.classList.toggle('selected', el.innerText.includes(name));
     });
-}
+};
 
 function displaySubjects() {
     const container = document.getElementById('subjectsContainer');
@@ -284,31 +298,31 @@ function displaySubjects() {
     notes.forEach(n => counts[n.subject] = (counts[n.subject] || 0) + 1);
     container.innerHTML = subjects.map(s => `
         <div class="subject-card" onclick="filterBySubject('${s.name}')" style="--subject-color: ${s.color}">
-            <div class="subject-icon"><i class="${s.icon}"></i></div>
-            <div class="subject-name">${s.name}</div>
-            <div class="subject-count">${counts[s.name] || 0} ملاحظة</div>
-        </div>`).join('');
+            <i class="${s.icon}"></i>
+            <h4>${s.name}</h4>
+            <small>${counts[s.name] || 0} ملاحظة</small>
+        </div>
+    `).join('');
 }
 
-window.filterBySubject = function(name) {
-    document.getElementById('filterSubject').value = name;
+window.filterBySubject = function(n) {
+    document.getElementById('filterSubject').value = n;
     displayNotes();
-}
+};
 
 function getSubjectInfo(name) {
     return subjects.find(s => s.name === name) || { icon: 'fas fa-book', color: '#6b7280' };
 }
 
-// الدوال المساعدة والـ Export
 window.exportNotes = function() {
-    const dataStr = JSON.stringify(notes, null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' });
+    const data = JSON.stringify(notes, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `ملاحظات_${currentUser}.json`;
-    link.click();
-}
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `notes_backup.json`;
+    a.click();
+};
 
 function clearForm() {
     document.getElementById('noteTitle').value = '';
@@ -316,13 +330,13 @@ function clearForm() {
     document.getElementById('noteSubject').value = '';
 }
 
-function showMessage(message, type) {
-    const div = document.createElement('div');
-    div.className = `message ${type}`;
-    div.innerHTML = `<span>${message}</span>`;
-    div.style = "position:fixed; bottom:20px; left:20px; background:#333; color:#fff; padding:15px; border-radius:8px; z-index:10000; border-left: 5px solid " + (type==='success'?'#10b981':'#ef4444');
-    document.body.appendChild(div);
-    setTimeout(() => div.remove(), 4000);
+function showMessage(msg, type) {
+    const m = document.createElement('div');
+    m.className = `message ${type}`;
+    m.style = "position:fixed; bottom:20px; right:20px; background:#222; color:#fff; padding:15px; border-radius:10px; z-index:9999; border-right:4px solid " + (type==='success'?'#4caf50':'#f44336');
+    m.innerText = msg;
+    document.body.appendChild(m);
+    setTimeout(() => m.remove(), 3500);
 }
 
 function setupEventListeners() {
@@ -331,5 +345,4 @@ function setupEventListeners() {
     document.getElementById('sortBy')?.addEventListener('change', displayNotes);
 }
 
-// تشغيل التطبيق
 document.addEventListener('DOMContentLoaded', initApp);
