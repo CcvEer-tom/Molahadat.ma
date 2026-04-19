@@ -1,9 +1,15 @@
-// ==========================================
-// 1. إعدادات Firebase (الربط السحابي)
-// ==========================================
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
+/* * ==========================================
+ * Developed by Ibrahim Anouer
+ * Platform: Molahadatna (Firebase Edition)
+ * Version: 2.0.1
+ * ==========================================
+ */
 
+// استيراد مكتبات Firebase
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+import { getDatabase, ref, push, onValue, remove, update, set } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
+
+// إعدادات الاتصال بقاعدة البيانات
 const firebaseConfig = {
     apiKey: "AIzaSyBkh7Mp-ixAnlQbERW5f4FYDhFEDN8q2zk",
     authDomain: "molahadatma.firebaseapp.com",
@@ -15,42 +21,61 @@ const firebaseConfig = {
     measurementId: "G-DHNGCLMPMF"
 };
 
+// تهيئة Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const notesRef = ref(db, 'notes');
 
-// ==========================================
-// 2. بيانات التطبيق (قائمة المواد)
-// ==========================================
+// متغيرات النظام الأساسية
 let notes = [];
 let currentUser = '';
 
+// قائمة المواد الدراسية الكاملة (كما كانت في كودك)
 const subjects = [
-    { id: 'math', name: 'رياضيات', icon: 'fas fa-calculator', color: '#667eea' },
-    { id: 'physics', name: 'فيزياء', icon: 'fas fa-atom', color: '#3b82f6' },
-    { id: 'arabic', name: 'لغة عربية', icon: 'fas fa-language', color: '#f59e0b' },
-    { id: 'islamic', name: 'تربية إسلامية', icon: 'fas fa-mosque', color: '#8b5cf6' },
-    { id: 'history', name: 'تاريخ', icon: 'fas fa-landmark', color: '#f97316' }
+    { id: 'math', name: 'رياضيات', icon: 'fas fa-calculator', color: '#667eea', colorDark: '#764ba2' },
+    { id: 'science', name: 'علوم', icon: 'fas fa-flask', color: '#10b981', colorDark: '#059669' },
+    { id: 'physics', name: 'فيزياء', icon: 'fas fa-atom', color: '#3b82f6', colorDark: '#1d4ed8' },
+    { id: 'chemistry', name: 'كيمياء', icon: 'fas fa-vial', color: '#8b5cf6', colorDark: '#7c3aed' },
+    { id: 'biology', name: 'أحياء', icon: 'fas fa-dna', color: '#84cc16', colorDark: '#65a30d' },
+    { id: 'arabic', name: 'لغة عربية', icon: 'fas fa-language', color: '#f59e0b', colorDark: '#d97706' },
+    { id: 'english', name: 'لغة إنجليزية', icon: 'fas fa-globe', color: '#ef4444', colorDark: '#dc2626' },
+    { id: 'french', name: 'لغة فرنسية', icon: 'fas fa-flag', color: '#ec4899', colorDark: '#db2777' },
+    { id: 'history', name: 'تاريخ', icon: 'fas fa-landmark', color: '#f97316', colorDark: '#ea580c' },
+    { id: 'geography', name: 'جغرافيا', icon: 'fas fa-globe-americas', color: '#06b6d4', colorDark: '#0891b2' },
+    { id: 'islamic', name: 'تربية إسلامية', icon: 'fas fa-mosque', color: '#8b5cf6', colorDark: '#7c3aed' },
+    { id: 'art', name: 'تربية فنية', icon: 'fas fa-palette', color: '#ec4899', colorDark: '#db2777' },
+    { id: 'sport', name: 'تربية رياضية', icon: 'fas fa-running', color: '#84cc16', colorDark: '#65a30d' },
+    { id: 'tech', name: 'تكنولوجيا', icon: 'fas fa-laptop-code', color: '#6366f1', colorDark: '#4f46e5' },
+    { id: 'economy', name: 'اقتصاد', icon: 'fas fa-chart-line', color: '#10b981', colorDark: '#059669' },
+    { id: 'philosophy', name: 'فلسفة', icon: 'fas fa-brain', color: '#8b5cf6', colorDark: '#7c3aed' },
+    { id: 'psychology', name: 'علم نفس', icon: 'fas fa-user-friends', color: '#ec4899', colorDark: '#db2777' },
+    { id: 'sociology', name: 'اجتماعيات', icon: 'fas fa-users', color: '#f59e0b', colorDark: '#d97706' },
+    { id: 'civil', name: 'تربية مدنية', icon: 'fas fa-balance-scale', color: '#3b82f6', colorDark: '#1d4ed8' },
+    { id: 'music', name: 'موسيقى', icon: 'fas fa-music', color: '#8b5cf6', colorDark: '#7c3aed' }
 ];
 
 // ==========================================
-// 3. ربط الدوال بـ Window (ليعمل HTML onclick)
+// وظائف التحكم في النافذة (Window Functions)
+// لضمان عمل onclick في HTML
 // ==========================================
 
 window.initApp = function() {
+    console.log("System Initializing...");
     currentUser = localStorage.getItem('currentUser') || '';
     
-    // تحديث الواجهات
+    // تحديث القوائم والواجهات
     window.updateSubjectSelect();
     window.displaySubjectButtons();
+    window.displaySubjects();
+    window.setupEventListeners();
     
     if (!currentUser) {
-        window.showLoginModal();
+        setTimeout(window.showLoginModal, 500);
     } else {
         window.updateNavUser();
     }
 
-    // مزامنة البيانات من Firebase
+    // الاستماع لقاعدة البيانات (بث حي)
     onValue(notesRef, (snapshot) => {
         const data = snapshot.val();
         notes = [];
@@ -78,80 +103,98 @@ window.saveUsername = function() {
         localStorage.setItem('currentUser', name);
         document.getElementById('loginModal').style.display = 'none';
         window.updateNavUser();
-        window.showMessage(`مرحباً ${name}! 👋`, 'success');
+        window.showMessage(`مرحباً بك ${name}`, 'success');
+    } else {
+        window.showMessage('الاسم قصير جداً', 'error');
     }
 };
 
 window.addNewSubject = function() {
-    const name = prompt('أدخل اسم المادة الجديدة:');
-    if (name && name.trim()) {
+    const newName = prompt("أدخل اسم المادة الجديدة:");
+    if (newName && newName.trim()) {
+        const check = subjects.find(s => s.name === newName.trim());
+        if (check) {
+            window.showMessage("المادة موجودة أصلاً", "error");
+            return;
+        }
         const newSub = {
-            id: Date.now().toString(),
-            name: name.trim(),
-            icon: 'fas fa-book',
-            color: '#6b7280'
+            id: 'custom_' + Date.now(),
+            name: newName.trim(),
+            icon: 'fas fa-book-open',
+            color: '#4a5568'
         };
         subjects.push(newSub);
         window.updateSubjectSelect();
         window.displaySubjectButtons();
         window.displaySubjects();
-        window.showMessage('تمت إضافة المادة', 'success');
+        window.showMessage("تمت إضافة " + newName, "success");
     }
 };
 
 window.addNote = function() {
-    const title = document.getElementById('noteTitle').value.trim();
-    const subject = document.getElementById('noteSubject').value;
-    const content = document.getElementById('noteContent').value.trim();
+    const titleObj = document.getElementById('noteTitle');
+    const subjectObj = document.getElementById('noteSubject');
+    const contentObj = document.getElementById('noteContent');
 
+    const title = titleObj.value.trim();
+    const subject = subjectObj.value;
+    const content = contentObj.value.trim();
+
+    if (!currentUser) { window.showLoginModal(); return; }
     if (!title || !subject || !content) {
-        window.showMessage('عمر كاع الخانات!', 'error');
+        window.showMessage("عمر كاع المعلومات أ صاحبي!", "error");
         return;
     }
 
-    const subInfo = subjects.find(s => s.name === subject) || { icon: 'fas fa-book', color: '#6b7280' };
+    const subData = subjects.find(s => s.name === subject) || { icon: 'fas fa-file', color: '#ccc' };
 
     const newNote = {
-        title, subject, content,
+        title: title,
+        subject: subject,
+        content: content,
         author: currentUser,
-        subjectIcon: subInfo.icon,
-        subjectColor: subInfo.color,
-        date: new Date().toLocaleDateString('ar-EG'),
-        timestamp: Date.now(),
-        likes: 0
+        subjectIcon: subData.icon,
+        subjectColor: subData.color,
+        date: new Date().toLocaleDateString('ar-MA'),
+        time: new Date().toLocaleTimeString('ar-MA', { hour: '2-digit', minute: '2-digit' }),
+        likes: 0,
+        timestamp: Date.now()
     };
 
     push(notesRef, newNote).then(() => {
-        window.clearForm();
-        window.showMessage('نشرتي الملاحظة بنجاح! 🎉', 'success');
+        titleObj.value = '';
+        contentObj.value = '';
+        window.showMessage("تم النشر بنجاح!", "success");
     });
 };
 
 window.displayNotes = function() {
-    const notesList = document.getElementById('notesList');
-    const searchTerm = document.getElementById('searchNotes').value.toLowerCase();
-    const filterSub = document.getElementById('filterSubject').value;
+    const list = document.getElementById('notesList');
+    const search = document.getElementById('searchNotes').value.toLowerCase();
+    const filter = document.getElementById('filterSubject').value;
+    const sort = document.getElementById('sortBy').value;
 
     let filtered = notes.filter(n => {
-        const matchesSearch = n.title.toLowerCase().includes(searchTerm) || n.content.toLowerCase().includes(searchTerm);
-        const matchesSub = !filterSub || n.subject === filterSub;
-        return matchesSearch && matchesSub;
+        return (n.title.toLowerCase().includes(search) || n.content.toLowerCase().includes(search)) &&
+               (!filter || n.subject === filter);
     });
 
-    notesList.innerHTML = filtered.map(n => `
-        <div class="note-card" style="border-right: 5px solid ${n.subjectColor}">
+    if (sort === 'oldest') filtered.sort((a,b) => a.timestamp - b.timestamp);
+    if (sort === 'mostLikes') filtered.sort((a,b) => b.likes - a.likes);
+
+    list.innerHTML = filtered.map(n => `
+        <div class="note-card" style="border-right: 6px solid ${n.subjectColor}">
             <div class="note-header">
                 <h3>${n.title}</h3>
-                <span class="note-subject"><i class="${n.subjectIcon}"></i> ${n.subject}</span>
+                <span class="badge" style="background:${n.subjectColor}22; color:${n.subjectColor}">
+                    <i class="${n.subjectIcon}"></i> ${n.subject}
+                </span>
             </div>
-            <div class="note-author">👤 ${n.author}</div>
-            <p class="note-content">${n.content.replace(/\n/g, '<br>')}</p>
+            <div class="note-meta">بواسطة: <b>${n.author}</b> | ${n.date}</div>
+            <p class="note-text">${n.content.replace(/\n/g, '<br>')}</p>
             <div class="note-footer">
-                <small>${n.date}</small>
-                <div class="note-actions">
-                    <button class="action-btn" onclick="window.likeNote('${n.id}')">❤️ ${n.likes || 0}</button>
-                    ${n.author === currentUser ? `<button class="action-btn delete" onclick="window.deleteNote('${n.id}')">🗑️</button>` : ''}
-                </div>
+                <button onclick="window.likeNote('${n.id}')" class="btn-like">❤️ ${n.likes || 0}</button>
+                ${n.author === currentUser ? `<button onclick="window.deleteNote('${n.id}')" class="btn-del">🗑️ حذف</button>` : ''}
             </div>
         </div>
     `).join('');
@@ -159,45 +202,41 @@ window.displayNotes = function() {
 
 window.likeNote = function(id) {
     const note = notes.find(n => n.id === id);
-    if (note) update(ref(db, `notes/${id}`), { likes: (note.likes || 0) + 1 });
+    if (note) {
+        update(ref(db, `notes/${id}`), { likes: (note.likes || 0) + 1 });
+    }
 };
 
 window.deleteNote = function(id) {
-    if (confirm('واش بغيتي تمسحها؟')) remove(ref(db, `notes/${id}`));
-};
-
-window.updateNavUser = function() {
-    const nav = document.getElementById('navUser');
-    if (nav) nav.innerHTML = `<span>👤 ${currentUser}</span> <button onclick="window.logout()" class="btn-logout">خروج</button>`;
-};
-
-window.logout = function() {
-    localStorage.removeItem('currentUser');
-    location.reload();
+    if (confirm("واش متأكد بغيتي تمسح هاد الملاحظة؟")) {
+        remove(ref(db, `notes/${id}`));
+    }
 };
 
 window.updateSubjectSelect = function() {
-    const s = document.getElementById('noteSubject');
-    const f = document.getElementById('filterSubject');
-    const options = subjects.map(x => `<option value="${x.name}">${x.name}</option>`).join('');
-    if (s) s.innerHTML = '<option value="">اختر المادة</option>' + options;
-    if (f) f.innerHTML = '<option value="">كل المواد</option>' + options;
+    const selects = [document.getElementById('noteSubject'), document.getElementById('filterSubject')];
+    const options = subjects.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+    
+    if (selects[0]) selects[0].innerHTML = '<option value="">-- اختر المادة --</option>' + options;
+    if (selects[1]) selects[1].innerHTML = '<option value="">كل المواد</option>' + options;
 };
 
 window.displaySubjectButtons = function() {
     const container = document.getElementById('subjectOptions');
-    if (container) container.innerHTML = subjects.map(s => `
-        <div class="subject-option" onclick="window.selectSubject('${s.name}')">
-            <i class="${s.icon}" style="color:${s.color}"></i>
-            <span>${s.name}</span>
-        </div>
-    `).join('');
+    if (container) {
+        container.innerHTML = subjects.map(s => `
+            <div class="subject-option" onclick="window.selectSubject('${s.name}')" style="border-color:${s.color}">
+                <i class="${s.icon}" style="color:${s.color}"></i>
+                <span>${s.name}</span>
+            </div>
+        `).join('');
+    }
 };
 
 window.selectSubject = function(name) {
     document.getElementById('noteSubject').value = name;
     document.querySelectorAll('.subject-option').forEach(el => {
-        el.classList.toggle('selected', el.innerText.includes(name));
+        el.classList.toggle('active', el.innerText.includes(name));
     });
 };
 
@@ -206,44 +245,55 @@ window.displaySubjects = function() {
     if (!container) return;
     const counts = {};
     notes.forEach(n => counts[n.subject] = (counts[n.subject] || 0) + 1);
+
     container.innerHTML = subjects.map(s => `
-        <div class="subject-card" onclick="window.filterBySubject('${s.name}')" style="--subject-color: ${s.color}">
+        <div class="subject-card" onclick="window.filterBySubject('${s.name}')" style="--clr:${s.color}">
             <i class="${s.icon}"></i>
             <h4>${s.name}</h4>
-            <small>${counts[s.name] || 0} ملاحظة</small>
+            <span>${counts[s.name] || 0} ملاحظة</span>
         </div>
     `).join('');
 };
 
 window.filterBySubject = function(name) {
-    document.getElementById('filterSubject').value = name;
-    window.displayNotes();
+    const filterEl = document.getElementById('filterSubject');
+    if (filterEl) {
+        filterEl.value = name;
+        window.displayNotes();
+    }
 };
 
-window.clearForm = function() {
-    document.getElementById('noteTitle').value = '';
-    document.getElementById('noteContent').value = '';
+window.updateNavUser = function() {
+    const nav = document.getElementById('navUser');
+    if (nav) {
+        nav.innerHTML = `
+            <div class="user-pill">
+                <span>👤 ${currentUser}</span>
+                <button onclick="window.logout()">خروج</button>
+            </div>
+        `;
+    }
 };
 
-window.resetFilters = function() {
-    document.getElementById('filterSubject').value = '';
-    document.getElementById('searchNotes').value = '';
-    window.displayNotes();
+window.logout = function() {
+    localStorage.removeItem('currentUser');
+    location.reload();
 };
 
 window.showMessage = function(msg, type) {
+    const box = document.getElementById('messageContainer');
     const m = document.createElement('div');
-    m.className = `message ${type}`;
-    m.style = "position:fixed; bottom:20px; left:20px; background:#333; color:#fff; padding:12px 20px; border-radius:8px; z-index:10000; border-right:5px solid " + (type==='success'?'#4caf50':'#f44336');
+    m.className = `toast ${type}`;
     m.innerText = msg;
-    document.body.appendChild(m);
-    setTimeout(() => m.remove(), 3000);
+    box.appendChild(m);
+    setTimeout(() => m.remove(), 4000);
 };
 
-function setupEventListeners() {
+window.setupEventListeners = function() {
     document.getElementById('searchNotes')?.addEventListener('input', window.displayNotes);
     document.getElementById('filterSubject')?.addEventListener('change', window.displayNotes);
-}
+    document.getElementById('sortBy')?.addEventListener('change', window.displayNotes);
+};
 
-// تشغيل التطبيق عند التحميل
+// انطلاق التطبيق
 document.addEventListener('DOMContentLoaded', window.initApp);
