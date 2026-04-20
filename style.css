@@ -1,10 +1,19 @@
 /* ==========================================
-   Molahadatna - Full & Final Style
+   Molahadatna - Full Integrated Style
    Developed by: Ibrahim Anouer
-   ==========================================
-*/
+   Version: 2.0.1
+   ========================================== */
 
-/* 1. التنسيق الأساسي */
+/* 1. الإعدادات العامة */
+:root {
+    --primary-color: #4f46e5;
+    --secondary-color: #7c3aed;
+    --danger-color: #ef4444;
+    --bg-color: #f8fafc;
+    --text-color: #1e293b;
+    --white: #ffffff;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -13,15 +22,15 @@
 }
 
 body {
-    background-color: #f8fafc;
-    color: #1e293b;
+    background-color: var(--bg-color);
+    color: var(--text-color);
     line-height: 1.6;
-    direction: rtl; /* لضمان التوافق مع اللغة العربية */
+    direction: rtl;
 }
 
-/* 2. الهيدر (شريط التنقل) - تم إصلاح التدرج */
+/* 2. الهيدر (Navbar) */
 .navbar {
-    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%) !important;
     padding: 12px 0 !important;
     color: white !important;
     position: sticky;
@@ -34,9 +43,9 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
 }
 
 .nav-logo {
@@ -47,80 +56,169 @@ body {
     font-weight: bold;
 }
 
-/* 3. زر الخروج والهوية - إصلاح جذري */
+/* 3. هوية المستخدم وزر الخروج */
 .nav-user {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+}
+
+.user-pill {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 5px 15px;
+    border-radius: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-.nav-user span {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 0.9rem;
-}
-
-/* زر الخروج - دبا غيولي احترافي */
-.nav-user button, .btn-logout, button[onclick="logout()"] {
+.user-pill button {
     background-color: rgba(255, 255, 255, 0.2) !important;
     color: white !important;
     border: 1px solid rgba(255, 255, 255, 0.4) !important;
-    padding: 6px 16px !important;
-    border-radius: 20px !important;
+    padding: 4px 12px !important;
+    border-radius: 15px !important;
     cursor: pointer !important;
     font-weight: 600 !important;
-    transition: all 0.3s ease !important;
+    font-size: 0.8rem !important;
+    transition: 0.3s;
 }
 
-.nav-user button:hover, button[onclick="logout()"]:hover {
-    background-color: #ef4444 !important; /* يتحول للأحمر عند التمرير */
-    border-color: #ef4444 !important;
-    transform: translateY(-2px);
+.user-pill button:hover {
+    background-color: var(--danger-color) !important;
+    border-color: var(--danger-color) !important;
 }
 
-/* 4. حاوية المحتوى */
+/* 4. الحاويات والأقسام */
 .container {
     max-width: 1200px;
     margin: 2rem auto;
     padding: 0 20px;
 }
 
-/* 5. بطاقات المواد (Subjects) */
-.subjects-section {
-    background: white;
+.subjects-section, .add-note-section, .notes-section {
+    background: var(--white);
     padding: 1.5rem;
     border-radius: 15px;
     margin-bottom: 2rem;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+/* 5. بطاقات المواد (Grid) */
 .subjects-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 15px;
 }
 
 .subject-card {
-    background: white;
+    background: var(--white);
     border: 1px solid #e2e8f0;
     border-radius: 12px;
     padding: 1.2rem;
     text-align: center;
     cursor: pointer;
     transition: 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.subject-card i {
+    font-size: 1.5rem;
+    color: var(--clr);
 }
 
 .subject-card:hover {
     transform: translateY(-5px);
-    border-color: #7c3aed;
-    box-shadow: 0 5px 15px rgba(124, 58, 237, 0.1);
+    border-color: var(--clr);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 
-/* 6. الملاحظات (Notes) - التصميم اللي بان في الصور */
+/* 6. النماذج (Forms) */
+.form-input, .form-textarea, .form-select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    font-size: 1rem;
+    transition: 0.3s;
+}
+
+.form-input:focus, .form-textarea:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.subject-select-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.subject-option {
+    padding: 8px 15px;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 0.9rem;
+}
+
+.subject-option.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+/* 7. أزرار الحركة */
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.btn-secondary {
+    background-color: #f1f5f9;
+    color: #475569;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.add-subject-btn {
+    background: none;
+    border: 2px dashed var(--primary-color);
+    color: var(--primary-color);
+    padding: 10px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* 8. بطاقات الملاحظات */
 .notes-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 20px;
 }
 
@@ -129,139 +227,81 @@ body {
     border-radius: 12px;
     padding: 1.5rem;
     border: 1px solid #e2e8f0;
-    position: relative;
     transition: 0.3s;
 }
 
-.note-card:hover {
-    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
-}
+.note-header h3 { margin-bottom: 5px; }
 
-.note-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.note-title {
+.badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
     font-weight: bold;
-    font-size: 1.1rem;
-    color: #1e293b;
 }
 
-/* 7. أزرار الإجراءات داخل البطاقة */
+.note-text {
+    margin: 15px 0;
+    color: #475569;
+}
+
 .note-footer {
     display: flex;
     justify-content: space-between;
-    margin-top: 15px;
-    padding-top: 10px;
     border-top: 1px solid #f1f5f9;
+    padding-top: 15px;
 }
 
-/* زر الإعجاب */
-.btn-like, button[onclick*="likeNote"] {
-    background: #fff1f2 !important;
-    color: #e11d48 !important;
-    border: none !important;
-    padding: 5px 12px !important;
-    border-radius: 8px !important;
-    cursor: pointer;
-    font-weight: bold;
+.btn-like { background: #fff1f2; color: var(--danger-color); border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+.btn-del { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+
+/* 9. النوافذ المنبثقة (Modal) */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
 }
 
-/* زر الحذف */
-.btn-del, button[onclick*="deleteNote"] {
-    background: #f8fafc !important;
-    color: #64748b !important;
-    border: 1px solid #e2e8f0 !important;
-    padding: 5px 12px !important;
-    border-radius: 8px !important;
-    cursor: pointer;
+.modal-content {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 450px;
+    text-align: center;
 }
 
-.btn-del:hover {
-    background: #fee2e2 !important;
-    color: #dc2626 !important;
+/* 10. التنبيهات (Toasts) */
+#messageContainer {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 3000;
 }
 
-/* 8. النماذج (Forms) */
-.form-input, .form-textarea {
-    width: 100%;
-    padding: 12px;
-    border: 2px solid #e2e8f0;
+.toast {
+    padding: 12px 25px;
     border-radius: 8px;
-    margin-bottom: 15px;
-    font-size: 1rem;
+    color: white;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    animation: slideIn 0.3s ease;
 }
 
-.form-input:focus {
-    border-color: #4f46e5;
-    outline: none;
+.toast.success { background: #10b981; }
+.toast.error { background: #ef4444; }
+
+@keyframes slideIn {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
 }
 
-/* 9. التجاوب مع الجوال (Responsive) */
+/* 11. التجاوب مع الجوال */
 @media (max-width: 768px) {
-    .nav-container {
-        padding: 0 15px;
-    }
-    
-    .nav-logo span {
-        font-size: 1.2rem;
-    }
-
-    .subjects-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .notes-list {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* إصلاح أيقونات FontAwesome */
-.fa, .fas {
-    margin-left: 5px;
-}
-
-.nav-container {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    flex-direction: row !important; /* لضمان بقاء اللوجو يسار والزر يمين أو العكس حسب التصميم */
-}
-
-/* 2. تحسين شكل زر الخروج */
-.btn-logout, button[onclick="logout()"] {
-    background-color: rgba(255, 255, 255, 0.2) !important; /* لون شفاف متناسق مع الهيدر */
-    color: white !important;
-    border: 1px solid rgba(255, 255, 255, 0.4) !important;
-    padding: 6px 16px !important;
-    border-radius: 20px !important;
-    font-weight: 600 !important;
-    font-size: 0.85rem !important;
-    cursor: pointer !important;
-    transition: all 0.3s ease !important;
-    white-space: nowrap !important; /* باش ما يتقسمش السطر في الزر */
-}
-
-/* 3. تأثير عند تمرير الماوس على زر الخروج */
-.btn-logout:hover, button[onclick="logout()"]:hover {
-    background-color: #ef4444 !important; /* يتحول للأحمر بوضوح */
-    border-color: #ef4444 !important;
-    box-shadow: 0 2px 10px rgba(239, 68, 68, 0.3) !important;
-}
-
-/* 4. موازنة اسم المستخدم بجانب الزر */
-.nav-user {
-    display: flex !important;
-    align-items: center !important;
-    gap: 10px !important;
-}
-
-/* 5. إصلاح بسيط لقائمة المواد (Select) باش ما تبقاش خارجة */
-select.form-select, #noteSubject {
-    appearance: auto !important;
-    -webkit-appearance: menulist !important;
-    width: 100% !important;
+    .subjects-grid { grid-template-columns: repeat(2, 1fr); }
+    .notes-list { grid-template-columns: 1fr; }
+    .nav-logo span { font-size: 1.2rem; }
 }
