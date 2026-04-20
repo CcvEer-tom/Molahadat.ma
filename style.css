@@ -381,3 +381,94 @@ h2 {
         padding: 1.2rem;
     }
 }
+
+/* 1. زر خروج (Logout) اللي الفوق */
+.btn-logout, button[onclick="logout()"] {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    padding: 5px 12px !important;
+    border-radius: 15px !important;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: 0.3s;
+    margin-top: 5px;
+}
+
+.btn-logout:hover {
+    background: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* 2. زر الإعجاب (القلب) */
+.btn-like, button[onclick*="likeNote"] {
+    background: #fff1f2 !important;
+    color: #e11d48 !important;
+    border: 1px solid #ffe4e6 !important;
+    padding: 6px 12px !important;
+    border-radius: 8px !important;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-like:hover {
+    background: #ffe4e6 !important;
+    transform: scale(1.05);
+}
+
+/* 3. زر الحذف (Trash) */
+.btn-del, button[onclick*="deleteNote"] {
+    background: #f8fafc !important;
+    color: #64748b !important;
+    border: 1px solid #e2e8f0 !important;
+    padding: 6px 12px !important;
+    border-radius: 8px !important;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-del:hover {
+    background: #fee2e2 !important;
+    color: #dc2626 !important;
+    border-color: #fecaca !important;
+}
+
+/* 4. تنسيق البطاقة (Card) باش يجي مع الصور */
+.note-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border: 1px solid #edf2f7;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.note-footer {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* 5. تحسين شكل الخطوط والمعلومات */
+.note-author {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin: 5px 0;
+}
+
+.badge-subject {
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: #f1f5f9;
+}
