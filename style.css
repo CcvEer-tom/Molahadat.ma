@@ -223,3 +223,45 @@ body {
 .fa, .fas {
     margin-left: 5px;
 }
+
+.nav-container {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    flex-direction: row !important; /* لضمان بقاء اللوجو يسار والزر يمين أو العكس حسب التصميم */
+}
+
+/* 2. تحسين شكل زر الخروج */
+.btn-logout, button[onclick="logout()"] {
+    background-color: rgba(255, 255, 255, 0.2) !important; /* لون شفاف متناسق مع الهيدر */
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    padding: 6px 16px !important;
+    border-radius: 20px !important;
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    white-space: nowrap !important; /* باش ما يتقسمش السطر في الزر */
+}
+
+/* 3. تأثير عند تمرير الماوس على زر الخروج */
+.btn-logout:hover, button[onclick="logout()"]:hover {
+    background-color: #ef4444 !important; /* يتحول للأحمر بوضوح */
+    border-color: #ef4444 !important;
+    box-shadow: 0 2px 10px rgba(239, 68, 68, 0.3) !important;
+}
+
+/* 4. موازنة اسم المستخدم بجانب الزر */
+.nav-user {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+
+/* 5. إصلاح بسيط لقائمة المواد (Select) باش ما تبقاش خارجة */
+select.form-select, #noteSubject {
+    appearance: auto !important;
+    -webkit-appearance: menulist !important;
+    width: 100% !important;
+}
