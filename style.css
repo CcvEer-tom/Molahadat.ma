@@ -1,259 +1,340 @@
 /* ==========================================
- * Developed by Ibrahim Anouer
- * Platform: Molahadatna (Firebase Edition)
- * Version: 2.0.1
- * ========================================== */
+   Molahadatna - Full Final Style
+   Developed by: Ibrahim Anouer
+   Version: 2.0.1
+   ========================================== */
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
+/* 1. الإعدادات الأساسية */
+:root {
+    --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    --danger-color: #ef4444;
+    --success-color: #10b981;
+    --bg-color: #f8fafc;
+    --card-bg: #ffffff;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+}
 
-// إعدادات Firebase
-const firebaseConfig = {
-    apiKey: "AIzaSyBkh7Mp-ixAnlQbERW5f4FYDhFEDN8q2zk",
-    authDomain: "molahadatma.firebaseapp.com",
-    databaseURL: "https://molahadatma-default-rtdb.firebaseio.com",
-    projectId: "molahadatma",
-    storageBucket: "molahadatma.firebasestorage.app",
-    messagingSenderId: "218152694932",
-    appId: "1:218152694932:web:7b973873a194f72e8cb081"
-};
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const notesRef = ref(db, 'notes');
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    line-height: 1.6;
+    direction: rtl;
+}
 
-let notes = [];
-let currentUser = localStorage.getItem('currentUser') || '';
+/* 2. الهيدر (Navbar) */
+.navbar {
+    background: var(--primary-gradient) !important;
+    padding: 12px 0 !important;
+    color: white !important;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.15);
+}
 
-const subjects = [
-    { id: 'math', name: 'رياضيات', icon: 'fas fa-calculator', color: '#667eea' },
-    { id: 'science', name: 'علوم', icon: 'fas fa-flask', color: '#10b981' },
-    { id: 'physics', name: 'فيزياء', icon: 'fas fa-atom', color: '#3b82f6' },
-    { id: 'arabic', name: 'لغة عربية', icon: 'fas fa-language', color: '#f59e0b' },
-    { id: 'english', name: 'لغة إنجليزية', icon: 'fas fa-globe', color: '#ef4444' },
-    { id: 'french', name: 'لغة فرنسية', icon: 'fas fa-flag', color: '#ec4899' },
-    { id: 'history', name: 'تاريخ', icon: 'fas fa-landmark', color: '#f97316' },
-    { id: 'philosophy', name: 'فلسفة', icon: 'fas fa-brain', color: '#8b5cf6' },
-    { id: 'tech', name: 'تكنولوجيا', icon: 'fas fa-laptop-code', color: '#6366f1' }
-    // يمكنك إضافة باقي المواد هنا بنفس الطريقة
-];
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
 
-// --- دالات النظام الأساسية ---
+.nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
 
-window.initApp = function() {
-    window.updateSubjectSelect();
-    window.displaySubjectButtons();
-    window.displaySubjects();
-    window.setupEventListeners();
-    
-    if (!currentUser) {
-        window.showLoginModal();
-    } else {
-        window.updateNavUser();
-    }
+/* 3. هوية المستخدم وزر الخروج (إصلاح شامل) */
+.nav-user {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+}
 
-    onValue(notesRef, (snapshot) => {
-        const data = snapshot.val();
-        notes = [];
-        if (data) {
-            Object.keys(data).forEach(key => {
-                notes.push({ id: key, ...data[key] });
-            });
-            notes.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-        }
-        window.displayNotes();
-        window.displaySubjects();
-    });
-};
+.user-pill {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 6px 16px;
+    border-radius: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(5px);
+}
 
-window.showLoginModal = function() {
-    const modal = document.getElementById('loginModal');
-    if (modal) modal.style.display = 'flex';
-};
+.user-pill span {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
 
-window.saveUsername = function() {
-    const input = document.getElementById('usernameInput');
-    const name = input.value.trim();
-    if (name.length >= 2) {
-        currentUser = name;
-        localStorage.setItem('currentUser', name);
-        document.getElementById('loginModal').style.display = 'none';
-        window.updateNavUser();
-        window.showMessage(`مرحباً بك ${name}`, 'success');
-    } else {
-        window.showMessage('الاسم قصير جداً أ صاحبي', 'error');
-    }
-};
+.user-pill button {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    padding: 4px 12px !important;
+    border-radius: 20px !important;
+    cursor: pointer !important;
+    font-weight: 600 !important;
+    font-size: 0.75rem !important;
+    transition: all 0.3s ease !important;
+    white-space: nowrap;
+}
 
-window.addNote = function() {
-    const title = document.getElementById('noteTitle').value.trim();
-    const subject = document.getElementById('noteSubject').value;
-    const content = document.getElementById('noteContent').value.trim();
+.user-pill button:hover {
+    background-color: var(--danger-color) !important;
+    border-color: var(--danger-color) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+}
 
-    if (!currentUser) { window.showLoginModal(); return; }
-    if (!title || !subject || !content) {
-        window.showMessage("عمر كاع المعلومات!", "error");
-        return;
-    }
+/* 4. الحاويات الرئيسية */
+.container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 20px;
+}
 
-    const subData = subjects.find(s => s.name === subject) || { icon: 'fas fa-file', color: '#ccc' };
+.subjects-section, .add-note-section, .notes-section {
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: 18px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-color);
+}
 
-    const newNote = {
-        title, subject, content,
-        author: currentUser,
-        subjectIcon: subData.icon,
-        subjectColor: subData.color,
-        date: new Date().toLocaleDateString('ar-MA'),
-        likes: 0,
-        timestamp: Date.now()
-    };
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
 
-    push(notesRef, newNote).then(() => {
-        window.clearForm();
-        window.showMessage("تم النشر بنجاح!", "success");
-    });
-};
+.section-header h2 {
+    font-size: 1.3rem;
+    color: #334155;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 
-window.displayNotes = function() {
-    const list = document.getElementById('notesList');
-    const search = document.getElementById('searchNotes').value.toLowerCase();
-    const filter = document.getElementById('filterSubject').value;
-    const sort = document.getElementById('sortBy').value;
+/* 5. شبكة المواد (Grid) */
+.subjects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 15px;
+}
 
-    let filtered = notes.filter(n => {
-        return (n.title.toLowerCase().includes(search) || n.content.toLowerCase().includes(search)) &&
-               (!filter || n.subject === filter);
-    });
+.subject-card {
+    background: #fdfdfd;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-    if (sort === 'oldest') filtered.sort((a,b) => a.timestamp - b.timestamp);
-    if (sort === 'mostLikes') filtered.sort((a,b) => b.likes - a.likes);
+.subject-card i {
+    font-size: 1.8rem;
+    color: var(--clr);
+    margin-bottom: 10px;
+}
 
-    list.innerHTML = filtered.map(n => `
-        <div class="note-card" style="border-right: 5px solid ${n.subjectColor}">
-            <div class="note-header">
-                <h3 class="note-title">${n.title}</h3>
-                <span class="badge" style="background:${n.subjectColor}22; color:${n.subjectColor}">
-                    <i class="${n.subjectIcon}"></i> ${n.subject}
-                </span>
-            </div>
-            <div class="note-meta" style="font-size:0.8rem; color:#64748b; margin-bottom:10px;">
-                بواسطة: <b>${n.author}</b> | ${n.date}
-            </div>
-            <p class="note-text">${n.content.replace(/\n/g, '<br>')}</p>
-            <div class="note-footer">
-                <button onclick="window.likeNote('${n.id}')" class="btn-like">❤️ ${n.likes || 0}</button>
-                ${n.author === currentUser ? `<button onclick="window.deleteNote('${n.id}')" class="btn-del">🗑️ حذف</button>` : ''}
-            </div>
-        </div>
-    `).join('');
-};
+.subject-card h4 {
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+}
 
-// --- وظائف التحكم الإضافية (الإصلاحات) ---
+.subject-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--clr);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+    background: white;
+}
 
-window.clearForm = function() {
-    document.getElementById('noteTitle').value = '';
-    document.getElementById('noteContent').value = '';
-    document.getElementById('noteSubject').value = '';
-    document.querySelectorAll('.subject-option').forEach(el => el.classList.remove('active'));
-};
+/* 6. النماذج (Forms) */
+.form-input, .form-textarea, .form-select {
+    width: 100%;
+    padding: 14px;
+    border: 2px solid #f1f5f9;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    background: #f8fafc;
+    font-size: 1rem;
+    transition: 0.3s;
+}
 
-window.resetFilters = function() {
-    document.getElementById('searchNotes').value = '';
-    document.getElementById('filterSubject').value = '';
-    document.getElementById('sortBy').value = 'newest';
-    window.displayNotes();
-};
+.form-input:focus, .form-textarea:focus, .form-select:focus {
+    background: white;
+    border-color: #6366f1;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
 
-window.likeNote = function(id) {
-    const note = notes.find(n => n.id === id);
-    if (note) {
-        update(ref(db, `notes/${id}`), { likes: (note.likes || 0) + 1 });
-    }
-};
+.subject-select-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 15px;
+}
 
-window.deleteNote = function(id) {
-    if (confirm("واش متأكد بغيتي تمسح هاد الملاحظة؟")) {
-        remove(ref(db, `notes/${id}`));
-    }
-};
+.subject-option {
+    padding: 8px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: 0.2s;
+    background: white;
+}
 
-window.updateSubjectSelect = function() {
-    const s1 = document.getElementById('noteSubject');
-    const s2 = document.getElementById('filterSubject');
-    const options = subjects.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
-    if (s1) s1.innerHTML = '<option value="">-- اختر المادة --</option>' + options;
-    if (s2) s2.innerHTML = '<option value="">كل المواد</option>' + options;
-};
+.subject-option.active {
+    background-color: #6366f1;
+    color: white;
+    border-color: #6366f1;
+}
 
-window.displaySubjectButtons = function() {
-    const container = document.getElementById('subjectOptions');
-    if (container) {
-        container.innerHTML = subjects.map(s => `
-            <div class="subject-option" onclick="window.selectSubject('${s.name}')" style="border-color:${s.color}">
-                <i class="${s.icon}" style="color:${s.color}"></i> ${s.name}
-            </div>
-        `).join('');
-    }
-};
+/* 7. أزرار العمليات */
+.btn-primary {
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: 0.3s;
+}
 
-window.selectSubject = function(name) {
-    document.getElementById('noteSubject').value = name;
-    document.querySelectorAll('.subject-option').forEach(el => {
-        el.classList.toggle('active', el.innerText.trim() === name);
-    });
-};
+.btn-secondary {
+    background: #f1f5f9;
+    color: #475569;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+}
 
-window.displaySubjects = function() {
-    const container = document.getElementById('subjectsContainer');
-    if (!container) return;
-    const counts = {};
-    notes.forEach(n => counts[n.subject] = (counts[n.subject] || 0) + 1);
+.btn-primary:hover { opacity: 0.9; transform: scale(1.02); }
 
-    container.innerHTML = subjects.map(s => `
-        <div class="subject-card" onclick="window.filterBySubject('${s.name}')" style="--clr:${s.color}">
-            <i class="${s.icon}"></i>
-            <h4>${s.name}</h4>
-            <span style="font-size:0.8rem; color:#64748b;">${counts[s.name] || 0} ملاحظة</span>
-        </div>
-    `).join('');
-};
+/* 8. بطاقات الملاحظات (Notes Card) */
+.notes-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 25px;
+}
 
-window.filterBySubject = function(name) {
-    const f = document.getElementById('filterSubject');
-    if (f) { f.value = name; window.displayNotes(); }
-};
+.note-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.8rem;
+    border: 1px solid var(--border-color);
+    transition: 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
 
-window.updateNavUser = function() {
-    const nav = document.getElementById('navUser');
-    if (nav) {
-        nav.innerHTML = `
-            <div class="user-pill">
-                <span>👤 ${currentUser}</span>
-                <button onclick="window.logout()">خروج</button>
-            </div>
-        `;
-    }
-};
+.note-card:hover {
+    box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+}
 
-window.logout = function() {
-    localStorage.removeItem('currentUser');
-    location.reload();
-};
+.badge {
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
 
-window.showMessage = function(msg, type) {
-    const box = document.getElementById('messageContainer');
-    const m = document.createElement('div');
-    m.className = `toast ${type}`;
-    m.innerText = msg;
-    box.appendChild(m);
-    setTimeout(() => m.remove(), 4000);
-};
+.note-text {
+    margin: 1rem 0;
+    color: #334155;
+    font-size: 1.05rem;
+    flex-grow: 1;
+}
 
-window.setupEventListeners = function() {
-    document.getElementById('searchNotes')?.addEventListener('input', window.displayNotes);
-    document.getElementById('filterSubject')?.addEventListener('change', window.displayNotes);
-    document.getElementById('sortBy')?.addEventListener('change', window.displayNotes);
-};
+.note-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1.5rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid #f1f5f9;
+}
 
-// انطلاق التطبيق
-document.addEventListener('DOMContentLoaded', window.initApp);
+.btn-like { background: #fff1f2; color: #e11d48; border: none; padding: 8px 16px; border-radius: 10px; cursor: pointer; font-weight: bold; }
+.btn-del { background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0; padding: 8px 16px; border-radius: 10px; cursor: pointer; }
+.btn-del:hover { background: #fee2e2; color: #ef4444; border-color: #fee2e2; }
+
+/* 9. النوافذ المنبثقة (Modal) */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(8px);
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.modal-content {
+    background: white;
+    padding: 3rem;
+    border-radius: 24px;
+    width: 90%;
+    max-width: 480px;
+    text-align: center;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* 10. التنبيهات (Toast) */
+#messageContainer {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    z-index: 3000;
+}
+
+.toast {
+    padding: 14px 28px;
+    border-radius: 12px;
+    color: white;
+    margin-top: 10px;
+    font-weight: 600;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    animation: slideInLeft 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.toast.success { background: var(--success-color); }
+.toast.error { background: var(--danger-color); }
+
+@keyframes slideInLeft {
+    from { transform: translateX(-110%); }
+    to { transform: translateX(0); }
+}
+
+/* 11. التجاوب مع الجوال */
+@media (max-width: 768px) {
+    .nav-container { padding: 0 15px; }
+    .nav-logo span { font-size: 1.2rem; }
+    .subjects-grid { grid-template-columns: repeat(2, 1fr); }
+    .notes-list { grid-template-columns: 1fr; }
+    .container { margin: 1rem auto; }
+}
