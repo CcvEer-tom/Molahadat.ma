@@ -1,35 +1,33 @@
 /* ==========================================
-   Developed by Ibrahim Anouer
-   Project: Molahadatna UI Framework
-   Full Style Sheet (Firebase & Responsive)
-==========================================
+   Molahadatna - Full & Final Style
+   Developed by: Ibrahim Anouer
+   ==========================================
 */
 
-/* التنسيق العام */
+/* 1. التنسيق الأساسي */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Segoe UI', 'Arial', sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {
-    background-color: #f5f7fa;
-    color: #333;
+    background-color: #f8fafc;
+    color: #1e293b;
     line-height: 1.6;
-    min-height: 100vh;
-    direction: rtl; /* ضمان الاتجاه من اليمين لليسار */
+    direction: rtl; /* لضمان التوافق مع اللغة العربية */
 }
 
-/* شريط التنقل */
+/* 2. الهيدر (شريط التنقل) - تم إصلاح التدرج */
 .navbar {
-    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-    color: white;
-    padding: 1rem 0;
-    box-shadow: 0 2px 15px rgba(79, 70, 229, 0.3);
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+    padding: 12px 0 !important;
+    color: white !important;
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
 }
 
 .nav-container {
@@ -44,500 +42,184 @@ body {
 .nav-logo {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     font-size: 1.5rem;
     font-weight: bold;
 }
 
+/* 3. زر الخروج والهوية - إصلاح جذري */
 .nav-user {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 12px;
 }
 
 .nav-user span {
     background: rgba(255, 255, 255, 0.1);
-    padding: 6px 15px;
+    padding: 5px 12px;
     border-radius: 20px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
     font-size: 0.9rem;
 }
 
-.btn-logout {
-    background: rgba(255, 255, 255, 0.15);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    padding: 6px 15px;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: 0.3s;
+/* زر الخروج - دبا غيولي احترافي */
+.nav-user button, .btn-logout, button[onclick="logout()"] {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    padding: 6px 16px !important;
+    border-radius: 20px !important;
+    cursor: pointer !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
 }
 
-.btn-logout:hover {
-    background: rgba(255, 255, 255, 0.3);
+.nav-user button:hover, button[onclick="logout()"]:hover {
+    background-color: #ef4444 !important; /* يتحول للأحمر عند التمرير */
+    border-color: #ef4444 !important;
+    transform: translateY(-2px);
 }
 
-/* المحتوى الرئيسي */
+/* 4. حاوية المحتوى */
 .container {
     max-width: 1200px;
     margin: 2rem auto;
     padding: 0 20px;
 }
 
-/* الأقسام المشتركة */
-.subjects-section, .add-note-section, .notes-section {
+/* 5. بطاقات المواد (Subjects) */
+.subjects-section {
     background: white;
-    padding: 2rem;
+    padding: 1.5rem;
     border-radius: 15px;
-    box-shadow: 0 3px 20px rgba(0, 0, 0, 0.05);
     margin-bottom: 2rem;
-    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 
-h2 {
-    color: #2d3748;
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 1.4rem;
-}
-
-/* شبكة المواد */
 .subjects-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 1.2rem;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 15px;
 }
 
 .subject-card {
-    background: #ffffff;
-    padding: 1.5rem 1rem;
+    background: white;
+    border: 1px solid #e2e8f0;
     border-radius: 12px;
+    padding: 1.2rem;
     text-align: center;
     cursor: pointer;
-    transition: all 0.3s ease;
-    border: 2px solid #f1f5f9;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-}
-
-.subject-card i {
-    font-size: 2rem;
-    margin-bottom: 5px;
+    transition: 0.3s;
 }
 
 .subject-card:hover {
     transform: translateY(-5px);
     border-color: #7c3aed;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    box-shadow: 0 5px 15px rgba(124, 58, 237, 0.1);
 }
 
-/* زر إضافة مادة جديدة */
-.add-subject-btn {
-    background: #f8fafc;
-    border: 2px dashed #cbd5e0;
-    color: #718096;
-    padding: 1rem;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    cursor: pointer;
-    transition: 0.3s;
-    width: 100%;
-    max-width: 250px;
-    margin: 1.5rem auto 0;
-}
-
-.add-subject-btn:hover {
-    border-color: #4f46e5;
-    color: #4f46e5;
-    background: #eef2ff;
-}
-
-/* النماذج (Forms) */
-.form-input, .form-select, .form-textarea, .search-input, .filter-select {
-    width: 100%;
-    padding: 12px 15px;
-    margin-bottom: 1rem;
-    border: 2px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: 0.3s;
-}
-
-.form-input:focus, .form-textarea:focus, .form-select:focus {
-    border-color: #4f46e5;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-}
-
-/* أزرار اختيار المواد في الفورم */
-.subject-select-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-    gap: 8px;
-    margin-bottom: 1rem;
-}
-
-.subject-option {
-    padding: 10px;
-    border: 2px solid #f1f5f9;
-    border-radius: 8px;
-    text-align: center;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: 0.2s;
-}
-
-.subject-option:hover {
-    background: #f8fafc;
-}
-
-.subject-option.selected {
-    border-color: #4f46e5;
-    background: #eef2ff;
-    color: #4f46e5;
-    font-weight: bold;
-}
-
-/* الأزرار الأساسية */
-.btn-primary {
-    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-    color: white;
-    border: none;
-    padding: 12px 25px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transition: 0.3s;
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(79, 70, 229, 0.4);
-}
-
-.btn-secondary {
-    background: #fff;
-    color: #4a5568;
-    border: 2px solid #e2e8f0;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: 0.2s;
-}
-
-.btn-secondary:hover {
-    border-color: #cbd5e0;
-    background: #f8fafc;
-}
-
-/* الملاحظات */
+/* 6. الملاحظات (Notes) - التصميم اللي بان في الصور */
 .notes-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
+    gap: 20px;
 }
 
 .note-card {
     background: white;
     border-radius: 12px;
     padding: 1.5rem;
-    border: 1px solid #e9ecef;
-    display: flex;
-    flex-direction: column;
+    border: 1px solid #e2e8f0;
+    position: relative;
     transition: 0.3s;
 }
 
 .note-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
 }
 
 .note-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
+    margin-bottom: 10px;
 }
 
-.badge {
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.8rem;
+.note-title {
     font-weight: bold;
+    font-size: 1.1rem;
+    color: #1e293b;
 }
 
-.note-author {
-    font-size: 0.85rem;
-    color: #718096;
-    margin-bottom: 0.5rem;
-}
-
-.note-text {
-    color: #4a5568;
-    margin-bottom: 1.5rem;
-    flex-grow: 1;
-}
-
+/* 7. أزرار الإجراءات داخل البطاقة */
 .note-footer {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    margin-top: 15px;
+    padding-top: 10px;
     border-top: 1px solid #f1f5f9;
-    padding-top: 1rem;
 }
 
-.note-footer button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 5px 10px;
-    border-radius: 5px;
-    transition: 0.2s;
-}
-
-.note-footer button:hover {
-    background: #f8fafc;
-}
-
-/* النافذة المنبثقة (Modal) */
-.modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-}
-
-.modal-content {
-    background: white;
-    padding: 2.5rem;
-    border-radius: 20px;
-    width: 100%;
-    max-width: 400px;
-    text-align: center;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-}
-
-.modal-logo {
-    font-size: 3rem;
-    color: #4f46e5;
-    margin-bottom: 1rem;
-}
-
-/* التجاوب مع الجوال (Responsive) */
-@media (max-width: 768px) {
-    .nav-container {
-        flex-direction: column;
-        gap: 1rem;
-        text-align: center;
-    }
-
-    .subjects-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-    }
-
-    .notes-list {
-        grid-template-columns: 1fr;
-    }
-
-    .section-header {
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .filters {
-        width: 100%;
-    }
-}
-
-@media (max-width: 480px) {
-    .container {
-        padding: 0 10px;
-    }
-
-    .subjects-section, .add-note-section, .notes-section {
-        padding: 1.2rem;
-    }
-}
-
-/* 1. زر خروج (Logout) اللي الفوق */
-.btn-logout, button[onclick="logout()"] {
-    background: rgba(255, 255, 255, 0.2) !important;
-    color: white !important;
-    border: 1px solid rgba(255, 255, 255, 0.4) !important;
-    padding: 5px 12px !important;
-    border-radius: 15px !important;
-    cursor: pointer;
-    font-size: 0.8rem;
-    transition: 0.3s;
-    margin-top: 5px;
-}
-
-.btn-logout:hover {
-    background: rgba(255, 255, 255, 0.4) !important;
-}
-
-/* 2. زر الإعجاب (القلب) */
+/* زر الإعجاب */
 .btn-like, button[onclick*="likeNote"] {
     background: #fff1f2 !important;
     color: #e11d48 !important;
-    border: 1px solid #ffe4e6 !important;
-    padding: 6px 12px !important;
+    border: none !important;
+    padding: 5px 12px !important;
     border-radius: 8px !important;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    gap: 5px;
     cursor: pointer;
-    transition: 0.2s;
+    font-weight: bold;
 }
 
-.btn-like:hover {
-    background: #ffe4e6 !important;
-    transform: scale(1.05);
-}
-
-/* 3. زر الحذف (Trash) */
+/* زر الحذف */
 .btn-del, button[onclick*="deleteNote"] {
     background: #f8fafc !important;
     color: #64748b !important;
     border: 1px solid #e2e8f0 !important;
-    padding: 6px 12px !important;
+    padding: 5px 12px !important;
     border-radius: 8px !important;
     cursor: pointer;
-    transition: 0.2s;
 }
 
 .btn-del:hover {
     background: #fee2e2 !important;
     color: #dc2626 !important;
-    border-color: #fecaca !important;
 }
 
-/* 4. تنسيق البطاقة (Card) باش يجي مع الصور */
-.note-card {
-    background: white;
-    border-radius: 15px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    border: 1px solid #edf2f7;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+/* 8. النماذج (Forms) */
+.form-input, .form-textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-size: 1rem;
 }
 
-.note-footer {
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid #f1f5f9;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.form-input:focus {
+    border-color: #4f46e5;
+    outline: none;
 }
 
-/* 5. تحسين شكل الخطوط والمعلومات */
-.note-author {
-    font-size: 0.8rem;
-    color: #94a3b8;
-    margin: 5px 0;
-}
-
-.badge-subject {
-    font-size: 0.75rem;
-    font-weight: bold;
-    padding: 4px 10px;
-    border-radius: 12px;
-    background: #f1f5f9;
-}
-
-
-/* ==========================================
-   Headr and button
-   ========================================== */
-
-/* 1. تنسيق الهيدر بالكامل */
-.navbar, header {
-    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
-    padding: 15px 0 !important;
-    min-height: 70px !important;
-    display: flex !important;
-    align-items: center !important;
-}
-
-
-.nav-user, #navUser {
-    display: flex !important;
-    align-items: center !important;
-    gap: 15px !important;
-    background: rgba(0, 0, 0, 0.1) !important; /* خلفية خفيفة للمنطقة */
-    padding: 5px 15px !important;
-    border-radius: 30px !important;
-}
-
-
-.nav-user button, 
-#navUser button, 
-button[onclick="logout()"] {
-    background-color: #ef4444 !important; 
-    color: white !important;
-    border: none !important;
-    padding: 8px 18px !important;
-    border-radius: 20px !important;
-    font-weight: bold !important;
-    font-size: 0.85rem !important;
-    cursor: pointer !important;
-    transition: all 0.3s ease !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
-    text-shadow: none !important;
-}
-
-.nav-user button:hover, 
-#navUser button:hover {
-    background-color: #dc2626 !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
-}
-
-
-.nav-logo, .nav-logo h1 {
-    color: white !important;
-    font-size: 1.6rem !important;
-    margin: 0 !important;
-    text-decoration: none !important;
-}
-
-
+/* 9. التجاوب مع الجوال (Responsive) */
 @media (max-width: 768px) {
     .nav-container {
-        flex-direction: row !important;
-        justify-content: space-between !important;
-        width: 100% !important;
+        padding: 0 15px;
     }
     
-    .nav-user span {
-        display: none; /*
+    .nav-logo span {
+        font-size: 1.2rem;
     }
+
+    .subjects-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .notes-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* إصلاح أيقونات FontAwesome */
+.fa, .fas {
+    margin-left: 5px;
 }
